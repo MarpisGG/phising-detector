@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-const NAV_LINKS = ["Beranda", "Tentang", "Panduan"];
 
 const PHISHING_TYPES = [
   { title: "Email Palsu", desc: "Pesan yang tampak resmi namun berisi tautan berbahaya untuk mencuri data login pengguna." },
@@ -16,9 +15,15 @@ const TIPS = [
   { num: "04", title: "Perbarui perangkat dan antivirus secara rutin", desc: "Pembaruan sistem menutup celah keamanan yang sering dieksploitasi oleh pelaku phishing." },
 ];
 
+type ResultType = {
+  safe: boolean;
+  score: number;
+  url: string;
+};
+
 export default function PhishGuard() {
   const [url, setUrl] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<ResultType | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
 
