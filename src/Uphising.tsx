@@ -68,9 +68,8 @@ export default function UPhising() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-[#F4F5F7]/90 backdrop-blur border-b border-[#E2E4EA]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-[15px] tracking-tight">
-            <span className="w-2 h-2 rounded-full bg-[#E8622A] inline-block" />
-            UPhising
+          <div className="flex items-center gap-2 text-xl font-bold decoration-0 tracking-tight">
+            U-Phising
           </div>
         </div>
       </nav>
@@ -137,7 +136,7 @@ export default function UPhising() {
               <p className="text-[12px] text-[#6B7080] font-mono mb-3 truncate">{result.url}</p>
               <div className="w-full bg-[#E8EAF0] rounded-full h-2.5 mb-2">
                 <div
-                  className={`h-2.5 rounded-full transition-all duration-700 ${result.safe ? "bg-[#16A34A]" : "bg-[#DC2626]"}`}
+                  className={`h-3 rounded-full transition-all duration-700 ${result.safe ? "bg-[#16A34A]" : "bg-[#DC2626]"}`}
                   style={{ width: `${result.score}%` }}
                 />
               </div>
