@@ -1,9 +1,9 @@
 import './App.css'
-import PhishGuard from './Phisguard'
+import UPhising from './Uphising'
 
 function App() {
   return (
-    <PhishGuard />
+    <UPhising />
   )
 }
 

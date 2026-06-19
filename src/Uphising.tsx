@@ -15,32 +15,52 @@ const TIPS = [
   { num: "04", title: "Perbarui perangkat dan antivirus secara rutin", desc: "Pembaruan sistem menutup celah keamanan yang sering dieksploitasi oleh pelaku phishing." },
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000";
+
 type ResultType = {
   safe: boolean;
   score: number;
   url: string;
 };
 
-export default function PhishGuard() {
+export default function UPhising() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<ResultType | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const   handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!url.trim()) return;
     setLoading(true);
     setResult(null);
-    setTimeout(() => {
-      const isSafe = Math.random() > 0.4;
-      setResult({
-        safe: isSafe,
-        score: isSafe ? Math.floor(Math.random() * 15) + 80 : Math.floor(Math.random() * 30) + 15,
-        url,
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim() }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Server merespons dengan status ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      // result "legitimate" = aman, "phishing" = berbahaya.
+      const safe = String(data.result ?? "").toLowerCase() === "legitimate";
+      // Bar diambil dari confidence (0..1) dikali 100.
+      const score = Math.round((data.confidence ?? 0) * 100);
+
+      setResult({ safe, score, url: url.trim() });
       setResultOpen(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menganalisis URL. Coba lagi.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -50,7 +70,7 @@ export default function PhishGuard() {
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-[15px] tracking-tight">
             <span className="w-2 h-2 rounded-full bg-[#E8622A] inline-block" />
-            PhishGuard
+            UPhising
           </div>
         </div>
       </nav>
@@ -97,6 +117,12 @@ export default function PhishGuard() {
             </button>
           </div>
 
+          {error && (
+            <div className="mt-5 rounded-xl border border-[#F5C5C5] bg-[#FDF2F2] p-4 text-[13px] text-[#DC2626]">
+              {error}
+            </div>
+          )}
+
           {resultOpen && result && (
             <div className={`mt-5 rounded-xl border p-5 ${result.safe ? "bg-[#F0FAF5] border-[#BBE5CC]" : "bg-[#FDF2F2] border-[#F5C5C5]"}`}>
               <div className="flex items-center justify-between mb-3">
@@ -109,9 +135,9 @@ export default function PhishGuard() {
                 </div>
               </div>
               <p className="text-[12px] text-[#6B7080] font-mono mb-3 truncate">{result.url}</p>
-              <div className="w-full bg-[#E8EAF0] rounded-full h-[3px] mb-2">
+              <div className="w-full bg-[#E8EAF0] rounded-full h-2.5 mb-2">
                 <div
-                  className={`h-[3px] rounded-full transition-all duration-700 ${result.safe ? "bg-[#16A34A]" : "bg-[#DC2626]"}`}
+                  className={`h-2.5 rounded-full transition-all duration-700 ${result.safe ? "bg-[#16A34A]" : "bg-[#DC2626]"}`}
                   style={{ width: `${result.score}%` }}
                 />
               </div>
@@ -164,7 +190,7 @@ export default function PhishGuard() {
         <div className="max-w-5xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-[#6B7080]">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E8622A] inline-block" />
-            © 2024 PhishGuard · Skripsi Teknik Informatika
+            © 2026 U-Phising · Marvell Christofer · Skripsi Teknik Informatika
           </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-[#6B7080] transition-colors">Kebijakan Privasi</a>
