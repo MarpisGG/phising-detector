@@ -30,17 +30,38 @@ export default function UPhising() {
   const [resultOpen, setResultOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cek apakah input berupa URL (dengan/tanpa protokol), bukan teks biasa seperti "tes".
+  const isValidUrl = (value: string) => {
+    // Pakai konstruktor URL untuk validasi; protokol hanya ditambahkan sementara untuk pengecekan.
+    const forCheck = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    try {
+      const parsed = new URL(forCheck);
+      return parsed.hostname.includes("."); // wajib ada domain dengan titik (mis. example.com)
+    } catch {
+      return false;
+    }
+  };
+
   const handleAnalyze = async () => {
-    if (!url.trim()) return;
-    setLoading(true);
+    const trimmed = url.trim();
+    if (!trimmed) return;
+
     setResult(null);
+    setResultOpen(false);
+
+    if (!isValidUrl(trimmed)) {
+      setError("Masukkan URL yang valid, contoh: example.com");
+      return;
+    }
+
+    setLoading(true);
     setError(null);
 
     try {
       const res = await fetch(`${API_BASE_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: trimmed }),
       });
 
       if (!res.ok) {
@@ -54,7 +75,7 @@ export default function UPhising() {
       // Bar diambil dari confidence (0..1) dikali 100.
       const score = Math.round((data.confidence ?? 0) * 100);
 
-      setResult({ safe, score, url: url.trim() });
+      setResult({ safe, score, url: trimmed });
       setResultOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menganalisis URL. Coba lagi.");
@@ -66,7 +87,7 @@ export default function UPhising() {
   return (
     <div className="min-h-screen bg-[#F4F5F7] text-[#111318] font-sans">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-[#F4F5F7]/90 backdrop-blur border-b border-[#E2E4EA]">
+      <nav className="sticky top-0 z-50 backdrop-blur border-b border-[#E2E4EA]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xl font-bold decoration-0 tracking-tight">
             U-Phising
@@ -94,7 +115,10 @@ export default function UPhising() {
             <input
               type="text"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                if (error) setError(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
               placeholder="Tempel URL di sini, contoh: https://example.com"
               className="flex-1 bg-[#F4F5F7] border border-[#E2E4EA] rounded-xl px-4 py-3 text-sm text-[#111318] placeholder-[#B0B4BE] outline-none focus:border-[#E8622A] focus:ring-2 focus:ring-[#E8622A]/10 transition"
@@ -190,10 +214,6 @@ export default function UPhising() {
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E8622A] inline-block" />
             © 2026 U-Phising · Marvell Christofer · Skripsi Teknik Informatika
-          </div>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-[#6B7080] transition-colors">Kebijakan Privasi</a>
-            <a href="#" className="hover:text-[#6B7080] transition-colors">Kontak</a>
           </div>
         </div>
       </footer>
